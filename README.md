@@ -1,4 +1,10 @@
-# Pack premium QR Code
+# Pack QR Code — Style industriel / militaire / mémoire
+
+## Corrections de cette version
+
+- Footer mobile corrigé : les logos restent sur la même ligne.
+- Palette refroidie : moins doré, plus acier / kaki militaire.
+- Responsive mobile amélioré sur header, tags, footer et logos.
 
 ## Contenu
 - page-1-audio.html
@@ -8,32 +14,18 @@
 - credits.html
 - css/style.css
 
-## Mentions personnalisées
-- Header : Corine Bourneton
-- Footer : EAJ - BA 116 - 2026
+## Footer
+- logo gauche : assets/eaj.png
+- texte central : EAJ - BA 116 - 2026
+- logo droite : assets/ba116.png
 
-## Personnalisation
+## Important
+Ajoute les fichiers de logos :
+- assets/eaj.png
+- assets/ba116.png
 
-### Audio
-Dans `page-1-audio.html`, remplace :
-`assets/audio-exemple.mp3`
-
-### Vidéo 1
-Dans `page-2-video.html`, remplace :
-`VIDEO_ID_1`
-
-### PDF
-Dans `page-3-pdf.html`, remplace :
-`assets/document-exemple.pdf`
-
-### Vidéo 2
-Dans `page-4-video.html`, remplace :
-`VIDEO_ID_2`
-
-## QR codes
-Crée 5 QR codes pointant chacun vers une page différente :
-- ton-site/page-1-audio.html
-- ton-site/page-2-video.html
-- ton-site/page-3-pdf.html
-- ton-site/page-4-video.html
-- ton-site/credits.html
+## Médias
+- Audio : assets/audio-exemple.mp3
+- Vidéo 1 : remplace VIDEO_ID_1
+- PDF : assets/document-exemple.pdf
+- Vidéo 2 : remplace VIDEO_ID_2

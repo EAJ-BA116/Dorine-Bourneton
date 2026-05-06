@@ -4,53 +4,184 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Troisième compartiment — Le Combat</title>
-  <meta name="description" content="Troisième compartiment — Le Combat - parcours QR code premium">
+  <meta name="description" content="Troisième compartiment — Le Combat - parcours QR code industriel militaire mémoire">
   <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
   <main class="page-shell">
+
     <header class="site-header">
       <div class="brand">
         <div class="brand-badge">03</div>
         <div>
           <p class="kicker">Corine Bourneton</p>
-          <h1>Troisième compartiment — Le Combat</h1>
+          <h1>La résilience des aviateurs</h1>
         </div>
       </div>
-      <div class="page-tag">Page 3 · PDF</div>
     </header>
 
     <section class="content-card">
       <div class="hero-block">
-        <div class="hero-title">
-          <span class="symbol-chip">Compartiment symbolique : Le Combat · Changer les règles</span>
-          <span class="symbol-chip">Mot-clé : Combattre</span>
-        </div>
-        <p class="big-keyword">Combattre</p>
-        <p class="lead">Le combat est celui de la volonté, de la dignité et du refus de subir. Cette page donne accès à un document PDF pour approfondir ce chapitre.</p>
-      </div>
+        <p class="big-keyword">Changer les règles</p>
 
-      
-      <div class="quote-box">
-        <p><strong>3ème compartiment symbolisant le Combat : “Changer les règles”.</strong><br>
-        Le combat commence quand on refuse la place imposée, quand on invente une autre manière d’exister, de vivre et d’agir.</p>
+        <div class="hero-meta">
+          <div class="meta-group">
+            <span class="meta-label">Mot-clé</span>
+            <span class="symbol-chip">Combattre</span>
+          </div>
+        </div>
       </div>
 
       <div class="media-shell">
         <div class="media-label">Document PDF</div>
-        <!-- Remplace document-exemple.pdf par ton vrai PDF -->
-        <iframe class="pdf-frame" src="assets/document-exemple.pdf" title="Document Combat"></iframe>
+
+        <div class="pdf-toolbar">
+          <button class="button secondary pdf-btn" id="prev-page" type="button">← Page précédente</button>
+
+          <div class="pdf-page-info">
+            Page <span id="page-num">1</span> / <span id="page-count">?</span>
+          </div>
+
+          <button class="button secondary pdf-btn" id="next-page" type="button">Page suivante →</button>
+        </div>
+
+        <div class="pdf-viewer-canvas-wrap">
+          <canvas id="pdf-canvas"></canvas>
+        </div>
       </div>
 
       <div class="action-row">
-        <a class="button primary" href="assets/document-exemple.pdf" target="_blank" rel="noopener">Ouvrir le PDF</a>
+        <a class="button primary" href="assets/pdf.pdf" target="_blank" rel="noopener">
+          Ouvrir le PDF
+        </a>
       </div>
 
+      <p class="story-text">
+        Porte-parole des pilotes handicapés de 1997 à 2003 au sein de l’Aéro-club de France,
+        elle est à l’origine de l’arrêté ministériel signé en novembre 2003 par Dominique Bussereau,
+        secrétaire d’État aux Transports et à la Mer. Ce texte ouvre aux personnes handicapées
+        l’accès à la licence de pilote professionnel. Un combat qu’elle mène aux côtés de
+        Brigitte Revellin-Falcoz, l’une des premières femmes pilotes de ligne en France,
+        et de Guillaume Féral, pilote paraplégique expérimenté.
+      </p>
     </section>
 
     <footer class="site-footer">
-      <span>EAJ - BA 116 - 2026</span>
+      <div class="footer-inner">
+        <div>
+          <img class="footer-logo" src="assets/eaj.png" alt="Logo EAJ">
+        </div>
+        <div class="footer-text">EAJ - BA 116 - 2026</div>
+        <div>
+          <img class="footer-logo" src="assets/ba116.png" alt="Logo BA 116">
+        </div>
+      </div>
     </footer>
+
   </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+  <script>
+    const pdfUrl = "assets/pdf.pdf";
+
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+    let pdfDoc = null;
+    let pageNum = 1;
+    let pageRendering = false;
+    let pageNumPending = null;
+
+    const canvas = document.getElementById("pdf-canvas");
+    const ctx = canvas.getContext("2d");
+    const pageNumEl = document.getElementById("page-num");
+    const pageCountEl = document.getElementById("page-count");
+    const prevBtn = document.getElementById("prev-page");
+    const nextBtn = document.getElementById("next-page");
+    const canvasWrap = document.querySelector(".pdf-viewer-canvas-wrap");
+
+    function renderPage(num) {
+      pageRendering = true;
+
+      pdfDoc.getPage(num).then((page) => {
+        const originalViewport = page.getViewport({ scale: 1 });
+        const availableWidth = canvasWrap.clientWidth - 20;
+        const scale = availableWidth / originalViewport.width;
+        const viewport = page.getViewport({ scale });
+
+        const outputScale = window.devicePixelRatio || 1;
+
+        canvas.width = Math.floor(viewport.width * outputScale);
+        canvas.height = Math.floor(viewport.height * outputScale);
+
+        canvas.style.width = Math.floor(viewport.width) + "px";
+        canvas.style.height = Math.floor(viewport.height) + "px";
+
+        ctx.setTransform(outputScale, 0, 0, outputScale, 0, 0);
+
+        const renderContext = {
+          canvasContext: ctx,
+          viewport: viewport
+        };
+
+        page.render(renderContext).promise.then(() => {
+          pageRendering = false;
+
+          if (pageNumPending !== null) {
+            renderPage(pageNumPending);
+            pageNumPending = null;
+          }
+        });
+
+        pageNumEl.textContent = num;
+      });
+    }
+
+    function queueRenderPage(num) {
+      if (pageRendering) {
+        pageNumPending = num;
+      } else {
+        renderPage(num);
+      }
+    }
+
+    function updateButtons() {
+      prevBtn.disabled = pageNum <= 1;
+      nextBtn.disabled = pageNum >= pdfDoc.numPages;
+    }
+
+    prevBtn.addEventListener("click", () => {
+      if (pageNum <= 1) return;
+      pageNum--;
+      queueRenderPage(pageNum);
+      updateButtons();
+    });
+
+    nextBtn.addEventListener("click", () => {
+      if (pageNum >= pdfDoc.numPages) return;
+      pageNum++;
+      queueRenderPage(pageNum);
+      updateButtons();
+    });
+
+    let resizeTimer;
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        if (pdfDoc) {
+          queueRenderPage(pageNum);
+        }
+      }, 200);
+    });
+
+    pdfjsLib.getDocument(pdfUrl).promise.then((pdf) => {
+      pdfDoc = pdf;
+      pageCountEl.textContent = pdf.numPages;
+      renderPage(pageNum);
+      updateButtons();
+    });
+  </script>
 </body>
 </html>
