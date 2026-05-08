@@ -22,6 +22,7 @@
     </header>
 
     <section class="content-card">
+
       <div class="hero-block">
         <p class="big-keyword">Changer les règles</p>
 
@@ -33,18 +34,8 @@
         </div>
       </div>
 
-      <div class="media-shell">
+      <div class="media-shell pdf-media-full">
         <div class="media-label">Document PDF</div>
-
-        <div class="pdf-toolbar">
-          <button class="button secondary pdf-btn" id="prev-page" type="button">← Page précédente</button>
-
-          <div class="pdf-page-info">
-            Page <span id="page-num">1</span> / <span id="page-count">?</span>
-          </div>
-
-          <button class="button secondary pdf-btn" id="next-page" type="button">Page suivante →</button>
-        </div>
 
         <div class="pdf-viewer-canvas-wrap">
           <canvas id="pdf-canvas"></canvas>
@@ -65,6 +56,7 @@
         Brigitte Revellin-Falcoz, l’une des premières femmes pilotes de ligne en France,
         et de Guillaume Féral, pilote paraplégique expérimenté.
       </p>
+
     </section>
 
     <footer class="site-footer">
@@ -72,7 +64,11 @@
         <div>
           <img class="footer-logo" src="assets/eaj.png" alt="Logo EAJ">
         </div>
-        <div class="footer-text">EAJ - BA 116 - 2026</div>
+
+        <div class="footer-text">
+          EAJ - BA 116 - 2026
+        </div>
+
         <div>
           <img class="footer-logo" src="assets/ba116.png" alt="Logo BA 116">
         </div>
@@ -89,25 +85,17 @@
     pdfjsLib.GlobalWorkerOptions.workerSrc =
       "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
-    let pdfDoc = null;
-    let pageNum = 1;
-    let pageRendering = false;
-    let pageNumPending = null;
-
     const canvas = document.getElementById("pdf-canvas");
     const ctx = canvas.getContext("2d");
-    const pageNumEl = document.getElementById("page-num");
-    const pageCountEl = document.getElementById("page-count");
-    const prevBtn = document.getElementById("prev-page");
-    const nextBtn = document.getElementById("next-page");
     const canvasWrap = document.querySelector(".pdf-viewer-canvas-wrap");
 
-    function renderPage(num) {
-      pageRendering = true;
+    let pdfDoc = null;
 
-      pdfDoc.getPage(num).then((page) => {
+    function renderPdfPage() {
+      pdfDoc.getPage(1).then((page) => {
         const originalViewport = page.getViewport({ scale: 1 });
-        const availableWidth = canvasWrap.clientWidth - 20;
+
+        const availableWidth = canvasWrap.clientWidth;
         const scale = availableWidth / originalViewport.width;
         const viewport = page.getViewport({ scale });
 
@@ -116,72 +104,35 @@
         canvas.width = Math.floor(viewport.width * outputScale);
         canvas.height = Math.floor(viewport.height * outputScale);
 
-        canvas.style.width = Math.floor(viewport.width) + "px";
-        canvas.style.height = Math.floor(viewport.height) + "px";
+        canvas.style.width = "100%";
+        canvas.style.height = "auto";
 
         ctx.setTransform(outputScale, 0, 0, outputScale, 0, 0);
 
-        const renderContext = {
+        page.render({
           canvasContext: ctx,
           viewport: viewport
-        };
-
-        page.render(renderContext).promise.then(() => {
-          pageRendering = false;
-
-          if (pageNumPending !== null) {
-            renderPage(pageNumPending);
-            pageNumPending = null;
-          }
         });
-
-        pageNumEl.textContent = num;
       });
     }
 
-    function queueRenderPage(num) {
-      if (pageRendering) {
-        pageNumPending = num;
-      } else {
-        renderPage(num);
-      }
-    }
-
-    function updateButtons() {
-      prevBtn.disabled = pageNum <= 1;
-      nextBtn.disabled = pageNum >= pdfDoc.numPages;
-    }
-
-    prevBtn.addEventListener("click", () => {
-      if (pageNum <= 1) return;
-      pageNum--;
-      queueRenderPage(pageNum);
-      updateButtons();
-    });
-
-    nextBtn.addEventListener("click", () => {
-      if (pageNum >= pdfDoc.numPages) return;
-      pageNum++;
-      queueRenderPage(pageNum);
-      updateButtons();
+    pdfjsLib.getDocument(pdfUrl).promise.then((pdf) => {
+      pdfDoc = pdf;
+      renderPdfPage();
     });
 
     let resizeTimer;
+
     window.addEventListener("resize", () => {
       clearTimeout(resizeTimer);
+
       resizeTimer = setTimeout(() => {
         if (pdfDoc) {
-          queueRenderPage(pageNum);
+          renderPdfPage();
         }
       }, 200);
     });
-
-    pdfjsLib.getDocument(pdfUrl).promise.then((pdf) => {
-      pdfDoc = pdf;
-      pageCountEl.textContent = pdf.numPages;
-      renderPage(pageNum);
-      updateButtons();
-    });
   </script>
+
 </body>
 </html>
